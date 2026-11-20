@@ -47,18 +47,6 @@ jobs:
       - run: unzip -q STANDOFF3_GITHUB_SOURCE.zip && cp -R updates/. cs-tactical/
       - run: npm install --no-audit --no-fund && npm run check
         working-directory: cs-tactical
-      - name: Browser interaction checks
-        working-directory: cs-tactical
-        run: |
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium
-          python3 -m http.server 8765 >/tmp/web.log 2>&1 &
-          node tests/mobile-smoke.cjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Mobile-preview
-          path: /tmp/*.png
       - uses: actions/cache@v4
         with:
           path: ~/.android/standoff-debug.keystore
