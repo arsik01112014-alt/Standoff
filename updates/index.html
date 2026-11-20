@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05080c">
+<meta name="description" content="STANDOFF 3 — ULTIMATE REBORN 5.0. Тактический шутер: скины, кейсы, инвентарь, карты A/B, боты, геймпад и MOD MENU.">
+<title>STANDOFF 3 — ULTIMATE REBORN 5.0 · Тактический шутер</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile-6.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="menuRoot"></div>
+<div id="gameHud" class="hidden"></div>
+
+<div id="pauseOverlay" class="overlay hidden">
+  <div class="ovCard">
+    <div class="ovTag">STANDOFF 3 · ПАУЗА</div>
+    <h2>ПАУЗА</h2>
+    <div class="pauseTabs"><button id="pauseRosterTab">СЧЁТ И ИГРОКИ</button><button id="pauseModsTab">MOD MENU</button></div>
+    <div id="pauseRoster"></div><div id="pauseMods" class="hidden"></div>
+    <div class="teamSwitch"><span>СМЕНИТЬ КОМАНДУ</span><button data-team-switch="CT">СПЕЦНАЗ</button><button data-team-switch="T">ТЕРРОРИСТЫ</button></div>
+    <p class="pauseNote" id="teamSwitchNote"></p>
+    <button id="resumeBtn" class="ovBtn primary">ПРОДОЛЖИТЬ</button>
+    <button id="quitBtn" class="ovBtn">ВЫЙТИ В МЕНЮ</button>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="ovCard resultCard">
+    <div class="ovTag">STANDOFF 3 · РЕЗУЛЬТАТ МАТЧА</div>
+    <h2 id="resTitle">ПОБЕДА</h2>
+    <div id="resStats"></div>
+    <button id="resAgain" class="ovBtn primary">ЕЩЁ МАТЧ</button>
+    <button id="resMenu" class="ovBtn">В МЕНЮ</button>
+  </div>
+</div>
+
+<div id="rotateHint" class="hidden">Для удобства поверните устройство горизонтально</div>
+
+<script src="dist/bundle.js"></script>
+</body>
+</html>

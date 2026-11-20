@@ -1,53 +1,73 @@
-name: Build iPhone IPA
-
+name: Mobile 6 IPA and APK
 on:
   workflow_dispatch:
   push:
-    paths:
-      - STANDOFF3_GITHUB_SOURCE.zip
-      - .github/workflows/ios-ipa.yml
-
+    paths: ['updates/**', '.github/workflows/ios-ipa.yml']
 permissions:
   contents: read
-
 jobs:
-  build:
+  ios:
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Extract source
-        run: unzip -q STANDOFF3_GITHUB_SOURCE.zip
-      - name: Install dependencies and check game
+      - run: unzip -q STANDOFF3_GITHUB_SOURCE.zip && cp -R updates/. cs-tactical/
+      - run: npm install --no-audit --no-fund && npm run check
         working-directory: cs-tactical
-        run: |
-          npm install --no-audit --no-fund
-          npm run check
-      - name: Prepare iOS project
+      - run: npm install --no-audit --no-fund && node sync-web.mjs && npx cap add ios && npx cap sync ios
+        working-directory: cs-tactical/ios-build
+      - name: Build IPA
         working-directory: cs-tactical/ios-build
         run: |
-          npm install --no-audit --no-fund
-          node sync-web.mjs
-          npx cap add ios
-          npx cap sync ios
-      - name: Build iPhone app and package IPA
-        working-directory: cs-tactical/ios-build
-        run: |
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
-            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" build
-          test -f build/Build/Products/Release-iphoneos/App.app/App
-          mkdir -p Payload
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" MARKETING_VERSION=6.0 CURRENT_PROJECT_VERSION=7 build
+          mkdir Payload
           cp -R build/Build/Products/Release-iphoneos/App.app Payload/App.app
-          zip -qry Standoff3Reborn-unsigned.ipa Payload
-          unzip -t Standoff3Reborn-unsigned.ipa
+          zip -qry Standoff3-6.0-unsigned.ipa Payload
+          unzip -t Standoff3-6.0-unsigned.ipa
       - uses: actions/upload-artifact@v4
         with:
-          name: Standoff3Reborn-unsigned-ipa
-          path: cs-tactical/ios-build/Standoff3Reborn-unsigned.ipa
+          name: Standoff3-6.0-IPA
+          path: cs-tactical/ios-build/Standoff3-6.0-unsigned.ipa
           if-no-files-found: error
-          retention-days: 30
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: unzip -q STANDOFF3_GITHUB_SOURCE.zip && cp -R updates/. cs-tactical/
+      - run: npm install --no-audit --no-fund && npm run check
+        working-directory: cs-tactical
+      - name: Browser interaction checks
+        working-directory: cs-tactical
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8765 >/tmp/web.log 2>&1 &
+          node tests/mobile-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Mobile-preview
+          path: /tmp/*.png
+      - uses: actions/cache@v4
+        with:
+          path: ~/.android/standoff-debug.keystore
+          key: standoff-android-debug-signing-v1
+      - name: Compile and sign APK
+        working-directory: cs-tactical
+        run: bash apk-build/build-ci.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Standoff3-6.0-APK
+          path: cs-tactical/apk-build/out/Standoff3-6.0.apk
+          if-no-files-found: error
