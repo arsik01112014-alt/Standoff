@@ -52,6 +52,9 @@ jobs:
           path: ~/.android/standoff-debug.keystore
           key: standoff-android-debug-signing-v1
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Compile and sign APK
         working-directory: cs-tactical
         run: bash apk-build/build-ci.sh
